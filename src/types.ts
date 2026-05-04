@@ -45,3 +45,13 @@ export interface LeadQualificationResult {
   score: number;
   summary: string;
 }
+
+export interface Notification {
+  id: string;
+  leadId: string;
+  title: string;
+  message: string;
+  type: 'hot_lead' | 'qualification_complete' | 'system';
+  read: boolean;
+  createdAt: any; // Firestore timestamp
+}

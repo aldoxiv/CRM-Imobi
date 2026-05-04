@@ -17,10 +17,12 @@ import {
   Phone,
   DollarSign,
   MapPin,
-  MessageSquare
+  MessageSquare,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import NotificationPanel from './NotificationPanel';
 
 export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -232,136 +234,127 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Selected Lead Details Sidebar */}
-        <AnimatePresence mode="wait">
-          {selectedLead && (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="w-full xl:w-[450px] bg-white border border-slate-200 shadow-2xl flex flex-col h-fit sticky top-6 rounded-sm overflow-hidden"
-            >
-              <div className="p-8 bg-slate-900 text-white relative">
-                <button 
-                  onClick={() => setSelectedLead(null)} 
-                  className="absolute right-6 top-6 text-slate-500 hover:text-white transition-colors"
-                >
-                  <LogOut className="w-5 h-5 rotate-180" />
-                </button>
-                <div className="flex items-center gap-5 mb-6">
-                  <div className="w-16 h-16 bg-slate-800 border border-slate-700 rounded flex items-center justify-center text-3xl font-black text-emerald-400">
-                    {(selectedLead.name || 'A')[0].toUpperCase()}
+        {/* Sidebar: Notifications or Selected Lead */}
+        <div className="w-full xl:w-[450px] space-y-8">
+          <AnimatePresence mode="wait">
+            {selectedLead ? (
+              <motion.div 
+                key="selected-lead"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="bg-white border border-slate-200 shadow-2xl flex flex-col h-fit sticky top-6 rounded-sm overflow-hidden"
+              >
+                <div className="p-8 bg-slate-900 text-white relative">
+                  <button 
+                    onClick={() => setSelectedLead(null)} 
+                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-colors mb-8"
+                  >
+                    <ChevronRight className="w-3 h-3 rotate-180" /> Voltar Protocolo
+                  </button>
+                  <div className="flex items-center gap-5 mb-6">
+                    <div className="w-16 h-16 bg-slate-800 border border-slate-700 rounded flex items-center justify-center text-3xl font-black text-emerald-400">
+                      {(selectedLead.name || 'A')[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold uppercase tracking-tight">{selectedLead.name || 'Lead Identified'}</h3>
+                      <div className="flex gap-2 mt-2">
+                         <span className="text-[9px] font-black bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700 uppercase tracking-widest">
+                           {selectedLead.qualifications?.urgency || 'Normal'} Intensity
+                         </span>
+                      </div>
+                    </div>
                   </div>
+                  <div className="flex justify-between items-end border-t border-slate-800 pt-6">
+                     <div>
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Current Metric</p>
+                       <p className="text-4xl font-mono font-bold text-emerald-500">
+                         {selectedLead.score}<span className="text-sm text-slate-600 font-sans ml-1 uppercase">/100</span>
+                       </p>
+                     </div>
+                     <div className="text-right">
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Status Protocol</p>
+                       <p className="text-sm font-bold text-white uppercase tracking-widest">{selectedLead.status}</p>
+                     </div>
+                  </div>
+                </div>
+
+                <div className="p-8 space-y-8 bg-white border-b border-slate-200">
+                  {/* Interest Profile - Geometric Bars */}
                   <div>
-                    <h3 className="text-2xl font-bold uppercase tracking-tight">{selectedLead.name || 'Lead Identified'}</h3>
-                    <div className="flex gap-2 mt-2">
-                       <span className="text-[9px] font-black bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700 uppercase tracking-widest">
-                         {selectedLead.qualifications?.urgency || 'Normal'} Intensity
-                       </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-between items-end border-t border-slate-800 pt-6">
-                   <div>
-                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Current Metric</p>
-                     <p className="text-4xl font-mono font-bold text-emerald-500">
-                       {selectedLead.score}<span className="text-sm text-slate-600 font-sans ml-1 uppercase">/100</span>
-                     </p>
-                   </div>
-                   <div className="text-right">
-                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Status Protocol</p>
-                     <p className="text-sm font-bold text-white uppercase tracking-widest">{selectedLead.status}</p>
-                   </div>
-                </div>
-              </div>
-
-              <div className="p-8 space-y-8 bg-white border-b border-slate-200">
-                {/* Interest Profile - Geometric Bars */}
-                <div>
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Qualification Alignment</h4>
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex justify-between items-end mb-2">
-                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Budget Readiness</span>
-                        <span className="text-[10px] font-mono font-bold text-slate-900">92%</span>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Qualification Alignment</h4>
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex justify-between items-end mb-2">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Budget Readiness</span>
+                          <span className="text-[10px] font-mono font-bold text-slate-900">92%</span>
+                        </div>
+                        <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="bg-emerald-500 h-full w-[92%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
+                        </div>
                       </div>
-                      <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="bg-emerald-500 h-full w-[92%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-end mb-2">
-                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Intent Purity</span>
-                        <span className="text-[10px] font-mono font-bold text-slate-900">{selectedLead.score}%</span>
-                      </div>
-                      <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-slate-900 transition-all duration-1000" 
-                          style={{ width: `${selectedLead.score}%` }}
-                        />
+                      <div>
+                        <div className="flex justify-between items-end mb-2">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Intent Purity</span>
+                          <span className="text-[10px] font-mono font-bold text-slate-900">{selectedLead.score}%</span>
+                        </div>
+                        <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-slate-900 transition-all duration-1000" 
+                            style={{ width: `${selectedLead.score}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Analysis Box */}
-                <div className="bg-slate-50 p-6 border border-slate-100 rounded-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <MessageSquare className="w-4 h-4 text-emerald-500" />
-                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Protocol Summary</h4>
+                  {/* Analysis Box */}
+                  <div className="bg-slate-50 p-6 border border-slate-100 rounded-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MessageSquare className="w-4 h-4 text-emerald-500" />
+                      <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Protocol Summary</h4>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                      "{selectedLead.summary || 'Awaiting further interaction for profile stabilization...'}"
+                    </p>
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                    "{selectedLead.summary || 'Awaiting further interaction for profile stabilization...'}"
-                  </p>
+
+                  {/* Contact Table */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-8">
+                     <div className="space-y-1">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Record</p>
+                       <p className="text-xs font-bold text-slate-900 truncate">{selectedLead.email || 'N/A'}</p>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tel Record</p>
+                       <p className="text-xs font-bold text-slate-900 truncate">{selectedLead.phone || 'N/A'}</p>
+                     </div>
+                  </div>
                 </div>
 
-                {/* Contact Table */}
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-8">
-                   <div className="space-y-1">
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Record</p>
-                     <p className="text-xs font-bold text-slate-900 truncate">{selectedLead.email || 'N/A'}</p>
-                   </div>
-                   <div className="space-y-1">
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tel Record</p>
-                     <p className="text-xs font-bold text-slate-900 truncate">{selectedLead.phone || 'N/A'}</p>
-                   </div>
-                   <div className="space-y-1 mt-4">
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Location Target</p>
-                     <p className="text-xs font-bold text-slate-900 truncate">{selectedLead.location || 'Not Specified'}</p>
-                   </div>
-                   <div className="space-y-1 mt-4">
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Budget Tier</p>
-                     <p className="text-xs font-bold text-emerald-600">
-                       {selectedLead.budget ? selectedLead.budget.toLocaleString('pt-BR') : '---'}
-                     </p>
-                   </div>
+                {/* Action Section */}
+                <div className="p-8 bg-slate-50 flex flex-col gap-3">
+                  <button 
+                    onClick={() => updateLeadStatus(selectedLead.id, LeadStatus.CONTACTED)}
+                    disabled={selectedLead.status === LeadStatus.CONTACTED}
+                    className="w-full py-4 bg-emerald-500 text-slate-900 text-xs font-black uppercase tracking-[0.2em] rounded-sm hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 disabled:grayscale disabled:opacity-50"
+                  >
+                    ASSIGN TO SALES AGENT
+                  </button>
                 </div>
-              </div>
-
-              {/* Action Section */}
-              <div className="p-8 bg-slate-50 flex flex-col gap-3">
-                <button 
-                  onClick={() => updateLeadStatus(selectedLead.id, LeadStatus.CONTACTED)}
-                  disabled={selectedLead.status === LeadStatus.CONTACTED}
-                  className="w-full py-4 bg-emerald-500 text-slate-900 text-xs font-black uppercase tracking-[0.2em] rounded-sm hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 disabled:grayscale disabled:opacity-50"
-                >
-                  ASSIGN TO SALES AGENT
-                </button>
-                <div className="flex gap-1.5 mt-2">
-                   <button 
-                     onClick={() => updateLeadStatus(selectedLead.id, LeadStatus.REJECTED)}
-                     className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
-                   >
-                     Discard Lead
-                   </button>
-                   <button className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
-                     Download Log
-                   </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="notifications"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <NotificationPanel />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="flex justify-between items-center py-10 border-t border-slate-200">

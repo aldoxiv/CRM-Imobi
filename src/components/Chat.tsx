@@ -16,6 +16,7 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [leadCreated, setLeadCreated] = useState(false);
+  const [notificationSent, setNotificationSent] = useState({ hot: false, qualified: false });
   const [displayLimit, setDisplayLimit] = useState(10);
   const prevCount = useRef(messages.length);
   const chatRef = useRef<any>(null);
@@ -103,12 +104,42 @@ export default function Chat() {
           );
           await setDoc(docRef, cleanData, { merge: true });
           setLeadCreated(true);
+
+          // Trigger Notifications
+          if (leadData.score > 80 && !notificationSent.hot) {
+            await createNotification(leadId, leadData, 'hot_lead');
+            setNotificationSent(prev => ({ ...prev, hot: true }));
+          } else if (leadData.status === LeadStatus.QUALIFIED && !notificationSent.qualified) {
+            await createNotification(leadId, leadData, 'qualification_complete');
+            setNotificationSent(prev => ({ ...prev, qualified: true }));
+          }
+
         } catch (err) {
           handleFirestoreError(err, OperationType.WRITE, `leads/${leadId}`);
         }
       }
     } catch (error) {
       console.error('Qualification error:', error);
+    }
+  };
+
+  const createNotification = async (leadId: string, leadData: any, type: 'hot_lead' | 'qualification_complete') => {
+    const notifId = `notif_${Date.now()}`;
+    const notification = {
+      leadId,
+      title: type === 'hot_lead' ? 'ALERTA: LEAD DE ALTA PRIORIDADE' : 'LEAD QUALIFICADO',
+      message: type === 'hot_lead' 
+        ? `Lead ${leadData.name || 'Identificado'} com score ${leadData.score}. Budget: ${leadData.budget ? leadData.budget.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'N/A'}.`
+        : `O perfil de ${leadData.name || 'Identificado'} foi estabilizado e está pronto para contato.`,
+      type,
+      read: false,
+      createdAt: serverTimestamp(),
+    };
+
+    try {
+      await setDoc(doc(db, 'notifications', notifId), notification);
+    } catch (err) {
+      console.error('Notification trigger failed:', err);
     }
   };
 

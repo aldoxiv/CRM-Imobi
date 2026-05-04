@@ -27,12 +27,30 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["score", "status", "createdAt", "updatedAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System notification for high-priority events",
+      "type": "object",
+      "properties": {
+        "leadId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["hot_lead", "qualification_complete", "system"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["leadId", "title", "message", "type", "read", "createdAt"]
     }
   },
   "firestore": {
     "leads": {
       "schema": "Lead",
       "description": "Collection of all real estate leads"
+    },
+    "notifications": {
+      "schema": "Notification",
+      "description": "Collection of sales team notifications"
     }
   }
 }

@@ -38,6 +38,17 @@ service cloud.firestore {
         && (!('summary' in data) || (data.summary is string && data.summary.size() <= 2000));
     }
 
+    function isValidNotification(data) {
+      let coreKeys = ['leadId', 'title', 'message', 'type', 'read', 'createdAt'];
+      return data.keys().hasAll(coreKeys)
+        && data.leadId is string && data.leadId.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.message is string && data.message.size() <= 1000
+        && data.type in ['hot_lead', 'qualification_complete', 'system']
+        && data.read is bool
+        && data.createdAt == request.time;
+    }
+
     match /leads/{leadId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
@@ -61,6 +72,13 @@ service cloud.firestore {
         )
       );
 
+      allow delete: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow list, get: if isSignedIn();
+      allow create: if isValidId(notificationId) && isValidNotification(incoming());
+      allow update: if isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
       allow delete: if false;
     }
   }
