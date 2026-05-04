@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Lead",
+      "description": "A potential real estate customer",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "budget": { "type": "number" },
+        "interests": { "type": "array", "items": { "type": "string" } },
+        "location": { "type": "string" },
+        "score": { "type": "integer" },
+        "status": { "type": "string", "enum": ["new", "qualified", "contacted", "closed", "rejected"] },
+        "qualifications": {
+          "type": "object",
+          "properties": {
+            "readyToBuy": { "type": "boolean" },
+            "hasFinancing": { "type": "boolean" },
+            "urgency": { "type": "string", "enum": ["low", "medium", "high"] }
+          }
+        },
+        "summary": { "type": "string" },
+        "chatHistory": { "type": "array", "items": { "type": "object" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["score", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "leads": {
+      "schema": "Lead",
+      "description": "Collection of all real estate leads"
+    }
+  }
+}

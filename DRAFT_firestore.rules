@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+    function isValidLead(data) {
+      return data.keys().hasAll(['score', 'status', 'createdAt', 'updatedAt'])
+        && data.score is int && data.score >= 0 && data.score <= 100
+        && data.status in ['new', 'qualified', 'contacted', 'closed', 'rejected']
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        // Optional fields check
+        && (!('name' in data) || (data.name is string && data.name.size() <= 200))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 200))
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 50))
+        && (!('budget' in data) || (data.budget is number))
+        && (!('summary' in data) || (data.summary is string && data.summary.size() <= 2000));
+    }
+
+    // --- Collection Routes ---
+    match /leads/{leadId} {
+      allow get: if isSignedIn(); // Agents can see individual leads
+      allow list: if isSignedIn(); // Agents can list leads
+      
+      allow create: if isValidId(leadId) && isValidLead(incoming());
+      
+      allow update: if (
+        isSignedIn() && (
+          // Action: Update Status/Notes (Agent)
+          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'summary', 'qualifications', 'score'])
+           && incoming().updatedAt == request.time
+           && incoming().status in ['new', 'qualified', 'contacted', 'closed', 'rejected'])
+        )
+      );
+
+      allow delete: if false; // Prevention of accidental data loss
+    }
+  }
+}
